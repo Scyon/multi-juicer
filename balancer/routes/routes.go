@@ -39,6 +39,8 @@ func AddRoutes(
 	router.Handle("GET /balancer/api/admin/all", handleAdminListInstances(bundle))
 	router.Handle("DELETE /balancer/api/admin/teams/{team}/delete", handleAdminDeleteInstance(bundle))
 	router.Handle("POST /balancer/api/admin/teams/{team}/restart", handleAdminRestartInstance(bundle))
+	router.Handle("GET /balancer/api/admin/settings/{setting}", handleAdminSettingsGet(bundle))
+	router.Handle("POST /balancer/api/admin/settings", handleAdminSettingsPost(bundle))
 
 	router.HandleFunc("GET /balancer/api/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
