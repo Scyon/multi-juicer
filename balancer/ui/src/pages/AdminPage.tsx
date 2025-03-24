@@ -225,7 +225,7 @@ function SettingsDisplay() {
   useEffect(() => {
     async function fetchSettings() {
       try {
-        const response = await fetch('/balancer/api/admin/settings/score-visibility');
+        const response = await fetch('/balancer/api/settings/score-visibility');
         if (response.ok) {
           const data = await response.json();
           // Data will be { setting: "score-visibility", value: "all/admin-only" }
@@ -243,7 +243,7 @@ function SettingsDisplay() {
   const handleToggle = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.checked;
     try {
-      const response = await fetch('/balancer/api/admin/settings', {
+      const response = await fetch('/balancer/api/settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -12,11 +12,11 @@ type setting struct {
 	Value string `json:"value"`
 }
 
-func handleAdminSettingsGet(bundle *bundle.Bundle) http.Handler {
+func handleSettingsGet(bundle *bundle.Bundle) http.Handler {
 	return http.HandlerFunc(
 		func(responseWriter http.ResponseWriter, req *http.Request) {
-			team, err := teamcookie.GetTeamFromRequest(bundle, req)
-			if err != nil || team != "admin" {
+			_, err := teamcookie.GetTeamFromRequest(bundle, req)
+			if err != nil {
 				http.Error(responseWriter, "", http.StatusUnauthorized)
 				return
 			}
@@ -47,7 +47,7 @@ func handleAdminSettingsGet(bundle *bundle.Bundle) http.Handler {
 		})
 }
 
-func handleAdminSettingsPost(bundle *bundle.Bundle) http.Handler {
+func handleSettingsPost(bundle *bundle.Bundle) http.Handler {
 	return http.HandlerFunc(
 		func(responseWriter http.ResponseWriter, req *http.Request) {
 			team, err := teamcookie.GetTeamFromRequest(bundle, req)

@@ -232,6 +232,22 @@ function ScoreDisplay({
 }: {
   instanceStatus: TeamStatusResponse | null;
 }) {
+  const [scoreOverviewEnabled, setScoreOverviewEnabled] = useState(false);
+  useEffect(() => {
+    async function fetchScoreVisibility() {
+      try {
+        const response = await fetch('/balancer/api/settings/score-visibility');
+        if (response.ok) {
+          const data = await response.json();
+          setScoreOverviewEnabled(data.value === "all");
+        }
+      } catch (error) {
+        console.error('Failed to fetch score visibility setting:', error);
+      }
+    }
+    fetchScoreVisibility();
+  }, []);
+
   if (!instanceStatus?.position || instanceStatus?.position === -1) {
     return (
       <div className="p-4 text-sm">
@@ -262,8 +278,13 @@ function ScoreDisplay({
       </div>
       <div className="flex flex-row-reverse items-center p-4">
         <Link
-          to="/score-overview"
-          className="bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-sm"
+          to={scoreOverviewEnabled ? "/score-overview" : "#"}
+          className={`py-2 px-4 rounded-sm font-semibold ${
+            scoreOverviewEnabled
+              ? "bg-gray-300 text-gray-800"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
+          onClick={e => !scoreOverviewEnabled && e.preventDefault()}
         >
           <FormattedMessage
             id="score_overview"
