@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"github.com/juice-shop/multi-juicer/balancer/pkg/teamcookie"
 	"net/http"
 	"time"
 
@@ -33,6 +34,12 @@ func handleIndividualScore(bundle *b.Bundle, scoringService *scoring.ScoringServ
 
 	return http.HandlerFunc(
 		func(responseWriter http.ResponseWriter, req *http.Request) {
+			user, _ := teamcookie.GetTeamFromRequest(bundle, req)
+			if bundle.GetScoreOverviewVisibility() == b.ScoreOverviewVisibilityAdminOnly && user != "admin" {
+				http.Error(responseWriter, "score board is disabled", http.StatusBadRequest)
+				return
+			}
+			
 			team := req.PathValue("team")
 
 			if !isValidTeamName(team) {

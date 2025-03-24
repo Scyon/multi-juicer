@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/juice-shop/multi-juicer/balancer/pkg/passcode"
 	"golang.org/x/crypto/bcrypt"
@@ -35,10 +36,16 @@ type RuntimeEnvironment struct {
 	Namespace string `json:"namespace"`
 }
 
+type Settings struct {
+	mu                      sync.RWMutex
+	ScoreOverviewVisibility string `json:"scoreOverviewVisibility"`
+}
+
 type Config struct {
 	JuiceShopConfig JuiceShopConfig `json:"juiceShop"`
 	MaxInstances    int             `json:"maxInstances"`
 	CookieConfig    CookieConfig    `json:"cookie"`
+	Settings        Settings        `json:"settings"`
 	AdminConfig     *AdminConfig
 }
 
@@ -132,6 +139,10 @@ func New() *Bundle {
 		panic(err)
 	}
 
+	if !isValidScoreOverviewVisibility(config.Settings.ScoreOverviewVisibility) {
+		panic(fmt.Sprintf("invalid value for 'scoreOverviewVisibility': %s", config.Settings.ScoreOverviewVisibility))
+	}
+
 	config.CookieConfig.SigningKey = cookieSigningKey
 	config.AdminConfig = &AdminConfig{Password: adminPasswordKey}
 
@@ -177,4 +188,27 @@ func readConfigFromFile(filePath string) (*Config, error) {
 	}
 
 	return &config, err
+}
+
+const ScoreOverviewVisibilityAll = "all"
+const ScoreOverviewVisibilityAdminOnly = "admin-only"
+
+func isValidScoreOverviewVisibility(value string) bool {
+	return value == ScoreOverviewVisibilityAll || value == ScoreOverviewVisibilityAdminOnly
+}
+
+func (b *Bundle) UpdateScoreOverviewVisibility(value string) error {
+	b.Config.Settings.mu.Lock()
+	defer b.Config.Settings.mu.Unlock()
+	if !isValidScoreOverviewVisibility(value) {
+		return fmt.Errorf("invalid value: %s", value)
+	}
+	b.Config.Settings.ScoreOverviewVisibility = value
+	return nil
+}
+
+func (b *Bundle) GetScoreOverviewVisibility() string {
+	b.Config.Settings.mu.Lock()
+	defer b.Config.Settings.mu.Unlock()
+	return b.Config.Settings.ScoreOverviewVisibility
 }
