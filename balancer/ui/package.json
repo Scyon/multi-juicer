@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@tailwindcss/postcss": "^4.0.14",
+    "@types/node": "^22.15.21",
     "motion": "^12.5.0",
     "promise-retry": "^2.0.1",
     "react": "^19.0.0",
