@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { defineMessages, FormattedMessage, useIntl } from "react-intl";
 import { ReadableTimestamp } from "../components/ReadableTimestamp";
+import { Toggle } from "../components/Toggle"
 
 import { Card } from "../components/Card";
 import {Link} from "react-router-dom";
@@ -20,6 +21,19 @@ const messages = defineMessages({
     defaultMessage: 'Are you sure you want to restart team "{team}"?',
   },
 });
+
+async function fetchSettings(callback: (data: Record<string, any>)=> void) {
+  try {
+    const response = await fetch('/balancer/api/settings/all');
+    if (response.ok) {
+      const data: Record<string, any> = await response.json();
+      callback(data)
+    }
+  } catch (error) {
+    console.error('Failed to fetch settings:', error);
+  }
+  window.setTimeout(() => fetchSettings(callback), 5000)
+}
 
 function RestartInstanceButton({ team }: { team: string }) {
   const intl = useIntl();
@@ -218,84 +232,87 @@ export default function AdminPage() {
 }
 
 function SettingsDisplay() {
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isScoreVisibleForUsers, setIsScoreVisibleForUsers] = useState(false);
+  const [isBalancerEnabled, setIsBalancerEnabled] = useState(false);
 
-  // Fetch initial state
+  function setData(data: Record<string, any>) {
+    setIsScoreVisibleForUsers(data.scoreOverviewVisibleForUsers);
+    setIsBalancerEnabled(data.balancerEnabled);
+  }
+
   useEffect(() => {
-    async function fetchSettings() {
-      try {
-        const response = await fetch('/balancer/api/settings/score-visibility');
-        if (response.ok) {
-          const data = await response.json();
-          // Data will be { setting: "score-visibility", value: "all/admin-only" }
-          setIsEnabled(data.value === "all");
-        }
-      } catch (error) {
-        console.error('Failed to fetch settings:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchSettings();
+    fetchSettings(setData);
   }, []);
 
-  const handleToggle = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.checked;
+  const handleToggle = async (fieldName: string, newValue: any, setter: any) => {
     try {
-      const response = await fetch('/balancer/api/settings', {
+      const response = await fetch(`/balancer/api/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          setting: "score-visibility",
-          value: newValue ? "all":"admin-only",
+          [fieldName]: newValue
         }),
       });
 
       if (response.ok) {
-        setIsEnabled(newValue);
-      } else {
-        // Revert if failed
-        setIsEnabled(!newValue);
+        setter(newValue)
       }
     } catch (error) {
       console.error('Failed to update setting:', error);
-      setIsEnabled(!newValue);
     }
   };
   return (
-      <Card className="grid grid-cols-4 items-center gap-8 gap-y-2 p-4">
-        <div>
-        <span className="text-sm font-light">
-          <FormattedMessage
-            id="score_overview_message"
-            defaultMessage="Score overview visible for users: "
-          />
-        </span>
-        </div>
-        <div>
-          <input
-            type="checkbox"
-            checked={isEnabled}
-            onChange={handleToggle}
-            disabled={isLoading}
-            className="h-4 w-4 rounded border-gray-300"
-          />
-        </div>
-        <div className="col-span-2 justify-self-end">
-          <Link
-            to="/score-overview"
-            className="bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-sm"
-          >
-            <FormattedMessage
-              id="score_overview"
-              defaultMessage="Score Overview"
-            />{" "}
-            →
-          </Link>
-        </div>
-      </Card>
+      <>
+        <Card className="grid grid-cols-4 items-center gap-8 gap-y-2 p-4">
+          <div>
+            <span className="text-sm font-semibold whitespace-nowrap">
+              <FormattedMessage
+                id="score_overview_message"
+                defaultMessage="Score overview visible for users"
+              />
+            </span>
+          </div>
+          <div>
+            <Toggle
+              className="small-switch"
+              name="score_toggle"
+              onChange={() => {handleToggle("scoreOverviewVisibleForUsers", !isScoreVisibleForUsers, setIsScoreVisibleForUsers)}}
+              checked={isScoreVisibleForUsers}
+            />
+          </div>
+          <div className="col-span-2 justify-self-end">
+            <Link
+              to="/score-overview"
+              className="bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-sm"
+            >
+              <FormattedMessage
+                id="score_overview"
+                defaultMessage="Score Overview"
+              />{" "}
+              →
+            </Link>
+          </div>
+        </Card>
+        <Card className="grid grid-cols-4 items-center gap-8 gap-y-2 p-4">
+          <div>
+            <span className="text-sm font-semibold whitespace-nowrap">
+              <FormattedMessage
+                id="enable_disable_balancer"
+                defaultMessage="Enable/disable balancer"
+              />
+            </span>
+          </div>
+          <div>
+            <Toggle
+              className="small-switch"
+              name="game_toggle"
+              onChange={() => {handleToggle("balancerEnabled", !isBalancerEnabled, setIsBalancerEnabled)}}
+              checked={isBalancerEnabled}
+            />
+          </div>
+        </Card>
+      </>
   )
 }

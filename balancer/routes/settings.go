@@ -2,15 +2,13 @@ package routes
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/juice-shop/multi-juicer/balancer/pkg/bundle"
 	"github.com/juice-shop/multi-juicer/balancer/pkg/teamcookie"
 	"net/http"
 )
 
-type setting struct {
-	Name  string `json:"setting"`
-	Value string `json:"value"`
-}
+type settings = map[string]interface{}
 
 func handleSettingsGet(bundle *bundle.Bundle) http.Handler {
 	return http.HandlerFunc(
@@ -21,13 +19,22 @@ func handleSettingsGet(bundle *bundle.Bundle) http.Handler {
 				return
 			}
 			data := req.PathValue("setting")
-			var response setting
+			var response settings
 			switch data {
-			case "score-visibility":
-				value := bundle.GetScoreOverviewVisibility()
-				response = setting{
-					Name:  "score-visibility",
-					Value: value,
+			case "scoreOverviewVisibleForUsers":
+				value := bundle.GetScoreOverviewVisibleForUsers()
+				response = settings{
+					"scoreOverviewVisibleForUsers": value,
+				}
+			case "balancerEnabled":
+				value := bundle.GetBalancerEnabled()
+				response = settings{
+					"balancerEnabled": value,
+				}
+			case "all":
+				response = settings{
+					"scoreOverviewVisibleForUsers": bundle.GetScoreOverviewVisibleForUsers(),
+					"balancerEnabled":              bundle.GetBalancerEnabled(),
 				}
 			default:
 				http.Error(responseWriter, "Unknown setting", http.StatusBadRequest)
@@ -56,25 +63,43 @@ func handleSettingsPost(bundle *bundle.Bundle) http.Handler {
 				return
 			}
 
-			var data setting
+			var data settings
+
+			if req.Body == nil {
+				http.Error(responseWriter, "invalid request body", http.StatusBadRequest)
+				return
+			}
 			if err := json.NewDecoder(req.Body).Decode(&data); err != nil {
-				http.Error(responseWriter, "Invalid request body", http.StatusBadRequest)
+				http.Error(responseWriter, "invalid request body", http.StatusBadRequest)
 				return
 			}
 			defer req.Body.Close()
 
-			switch data.Name {
-			case "score-visibility":
-				if err := bundle.UpdateScoreOverviewVisibility(data.Value); err != nil {
-					http.Error(responseWriter, err.Error(), http.StatusBadRequest)
+			for setting, value := range data {
+				switch setting {
+				case "scoreOverviewVisibleForUsers":
+					fallthrough
+				case "balancerEnabled":
+					if _, ok := value.(bool); !ok {
+						http.Error(responseWriter, fmt.Sprintf("invalid value: %s, for setting: %s", value, setting), http.StatusBadRequest)
+						return
+					}
+				default:
+					http.Error(responseWriter, fmt.Sprintf("unknown setting: %s", setting), http.StatusBadRequest)
 					return
 				}
-			default:
-				http.Error(responseWriter, "Unknown setting", http.StatusBadRequest)
-				return
 			}
 
-			bundle.Log.Printf("Setting updated: %+v", data)
+			for setting, value := range data {
+				switch setting {
+				case "scoreOverviewVisibleForUsers":
+					bundle.UpdateScoreOverviewVisibleForUsers(value.(bool))
+				case "balancerEnabled":
+					bundle.UpdateBalancerEnabled(value.(bool))
+				}
+			}
+
+			bundle.Log.Printf("settings updated: %+v", data)
 
 			responseWriter.WriteHeader(http.StatusOK)
 			responseWriter.Write([]byte{})

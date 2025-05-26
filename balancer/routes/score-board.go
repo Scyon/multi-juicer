@@ -26,7 +26,7 @@ func handleScoreBoard(bundle *b.Bundle, scoringService *scoring.ScoringService) 
 	return http.HandlerFunc(
 		func(responseWriter http.ResponseWriter, req *http.Request) {
 			user, _ := teamcookie.GetTeamFromRequest(bundle, req)
-			if bundle.GetScoreOverviewVisibility() == b.ScoreOverviewVisibilityAdminOnly && user != "admin" {
+			if !bundle.GetScoreOverviewVisibleForUsers() && user != "admin" {
 				responseWriter.WriteHeader(http.StatusNoContent)
 				responseWriter.Write([]byte{})
 				return

@@ -37,8 +37,9 @@ type RuntimeEnvironment struct {
 }
 
 type Settings struct {
-	mu                      sync.RWMutex
-	ScoreOverviewVisibility string `json:"scoreOverviewVisibility"`
+	mu                           sync.RWMutex
+	ScoreOverviewVisibleForUsers bool `json:"scoreOverviewVisibleForUsers"`
+	BalancerEnabled              bool `json:"balancerEnabled"`
 }
 
 type Config struct {
@@ -139,10 +140,6 @@ func New() *Bundle {
 		panic(err)
 	}
 
-	if !isValidScoreOverviewVisibility(config.Settings.ScoreOverviewVisibility) {
-		panic(fmt.Sprintf("invalid value for 'scoreOverviewVisibility': %s", config.Settings.ScoreOverviewVisibility))
-	}
-
 	config.CookieConfig.SigningKey = cookieSigningKey
 	config.AdminConfig = &AdminConfig{Password: adminPasswordKey}
 
@@ -190,25 +187,28 @@ func readConfigFromFile(filePath string) (*Config, error) {
 	return &config, err
 }
 
-const ScoreOverviewVisibilityAll = "all"
-const ScoreOverviewVisibilityAdminOnly = "admin-only"
-
-func isValidScoreOverviewVisibility(value string) bool {
-	return value == ScoreOverviewVisibilityAll || value == ScoreOverviewVisibilityAdminOnly
-}
-
-func (b *Bundle) UpdateScoreOverviewVisibility(value string) error {
+func (b *Bundle) UpdateScoreOverviewVisibleForUsers(value bool) error {
 	b.Config.Settings.mu.Lock()
 	defer b.Config.Settings.mu.Unlock()
-	if !isValidScoreOverviewVisibility(value) {
-		return fmt.Errorf("invalid value: %s", value)
-	}
-	b.Config.Settings.ScoreOverviewVisibility = value
+	b.Config.Settings.ScoreOverviewVisibleForUsers = value
 	return nil
 }
 
-func (b *Bundle) GetScoreOverviewVisibility() string {
+func (b *Bundle) GetScoreOverviewVisibleForUsers() bool {
 	b.Config.Settings.mu.Lock()
 	defer b.Config.Settings.mu.Unlock()
-	return b.Config.Settings.ScoreOverviewVisibility
+	return b.Config.Settings.ScoreOverviewVisibleForUsers
+}
+
+func (b *Bundle) UpdateBalancerEnabled(value bool) error {
+	b.Config.Settings.mu.Lock()
+	defer b.Config.Settings.mu.Unlock()
+	b.Config.Settings.BalancerEnabled = value
+	return nil
+}
+
+func (b *Bundle) GetBalancerEnabled() bool {
+	b.Config.Settings.mu.Lock()
+	defer b.Config.Settings.mu.Unlock()
+	return b.Config.Settings.BalancerEnabled
 }
