@@ -49,8 +49,8 @@ func NewTestBundleWithCustomFakeClient(clientset kubernetes.Interface) *bundle.B
 		Config: &bundle.Config{
 			MaxInstances: 100,
 			Settings: bundle.Settings{
-				ScoreOverviewVisibleForUsers: false,
-				BalancerEnabled:              false,
+				ScoreOverviewVisibleForUsers: true,
+				BalancerEnabled:              true,
 			},
 			JuiceShopConfig: bundle.JuiceShopConfig{
 				ImagePullPolicy: "IfNotPresent",
