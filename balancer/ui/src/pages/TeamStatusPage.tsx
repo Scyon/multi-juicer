@@ -16,6 +16,19 @@ interface TeamStatusResponse {
   readiness: boolean;
 }
 
+async function fetchSettings(callback: (data: Record<string, any>)=> void) {
+  try {
+    const response = await fetch('/balancer/api/settings/all');
+    if (response.ok) {
+      const data: Record<string, any> = await response.json();
+      callback(data)
+    }
+  } catch (error) {
+    console.error('Failed to fetch settings:', error);
+  }
+  window.setTimeout(() => fetchSettings(callback), 5000)
+}
+
 function LogoutButton({
   setActiveTeam,
 }: {
@@ -138,6 +151,18 @@ export const TeamStatusPage = ({
 
   const { state } = useLocation();
 
+  const [scoreOverviewEnabled, setScoreOverviewEnabled] = useState(false);
+  const [balancerEnabled, setBalancerEnabled] = useState(false);
+
+  function setData(data: Record<string, any>) {
+    setScoreOverviewEnabled(data.scoreOverviewVisibleForUsers);
+    setBalancerEnabled(data.balancerEnabled);
+  }
+
+  useEffect(() => {
+    fetchSettings(setData);
+  }, []);
+
   const passcode: string | null = state?.passcode || null;
 
   let timeout: number | null = null;
@@ -209,7 +234,7 @@ export const TeamStatusPage = ({
 
         <hr className="border-gray-500" />
 
-        <ScoreDisplay instanceStatus={instanceStatus} />
+        <ScoreDisplay instanceStatus={instanceStatus} scoreOverviewEnabled={scoreOverviewEnabled} />
         <hr className="border-gray-500" />
 
         {passcode && (
@@ -221,7 +246,7 @@ export const TeamStatusPage = ({
           </>
         )}
 
-        <StatusDisplay instanceStatus={instanceStatus} />
+        <StatusDisplay instanceStatus={instanceStatus} balancerEnabled={balancerEnabled} />
       </Card>
     </>
   );
@@ -229,24 +254,12 @@ export const TeamStatusPage = ({
 
 function ScoreDisplay({
   instanceStatus,
+  scoreOverviewEnabled
 }: {
   instanceStatus: TeamStatusResponse | null;
+  scoreOverviewEnabled: boolean
 }) {
-  const [scoreOverviewEnabled, setScoreOverviewEnabled] = useState(false);
-  useEffect(() => {
-    async function fetchScoreVisibility() {
-      try {
-        const response = await fetch('/balancer/api/settings/score-visibility');
-        if (response.ok) {
-          const data = await response.json();
-          setScoreOverviewEnabled(data.value === "all");
-        }
-      } catch (error) {
-        console.error('Failed to fetch score visibility setting:', error);
-      }
-    }
-    fetchScoreVisibility();
-  }, []);
+
 
   if (!instanceStatus?.position || instanceStatus?.position === -1) {
     return (
@@ -299,8 +312,10 @@ function ScoreDisplay({
 
 function StatusDisplay({
   instanceStatus,
+  balancerEnabled,
 }: {
   instanceStatus: TeamStatusResponse | null;
+  balancerEnabled: boolean
 }) {
   if (!instanceStatus?.readiness) {
     return (
@@ -313,6 +328,19 @@ function StatusDisplay({
         </Button>
       </div>
     );
+  }
+
+  if (!balancerEnabled) {
+    return (
+        <div className="p-6">
+          <Button disabled>
+            <FormattedMessage
+                id="instance_status_starting"
+                defaultMessage="JuiceShop not enabled..."
+            />
+          </Button>
+        </div>
+    )
   }
 
   return (

@@ -48,6 +48,10 @@ func NewTestBundleWithCustomFakeClient(clientset kubernetes.Interface) *bundle.B
 		Log:          log.New(os.Stdout, "", log.LstdFlags),
 		Config: &bundle.Config{
 			MaxInstances: 100,
+			Settings: bundle.Settings{
+				ScoreOverviewVisibleForUsers: false,
+				BalancerEnabled:              false,
+			},
 			JuiceShopConfig: bundle.JuiceShopConfig{
 				ImagePullPolicy: "IfNotPresent",
 				Image:           "bkimminich/juice-shop",

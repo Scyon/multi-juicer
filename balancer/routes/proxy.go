@@ -47,6 +47,11 @@ func handleProxy(bundle *bundle.Bundle) http.Handler {
 				return
 			}
 
+			if !bundle.GetBalancerEnabled() {
+				http.Redirect(responseWriter, req, fmt.Sprintf("/balancer/?msg=balancer-disabled&team=%s", team), http.StatusFound)
+				return
+			}
+
 			if !wasInstanceUptimeStatusCheckedRecently(team) {
 				status := isInstanceUp(req.Context(), bundle, team)
 				if status == instanceUp {
