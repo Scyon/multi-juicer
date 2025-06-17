@@ -57,7 +57,7 @@ default values render correctly:
               }
             },
             "runtimeClassName": null,
-            "tag": "v17.3.0",
+            "tag": "v18.0.0",
             "tolerations": [],
             "volumeMounts": [],
             "volumes": []
@@ -96,8 +96,8 @@ default values render correctly:
       template:
         metadata:
           annotations:
-            checksum/config: 8af1c1aad3fc02724fb8ea0d79d3b795b5f8fbc8f3d9ced89d5cfd4c320d9f01
-            checksum/secret: 7c430d8f6cf074b992d9f63d9f6fc51256eef05865623b5f19c6c12cef547179
+            checksum/config: 628b8b15646253c65cfe5dc5e4afcb2bd297476cc8df2b00ee5da2e62311d6e6
+            checksum/secret: 1e1dbeb85e39841b0afb47a5c93d071717f4c3c86dc5136be9f8db9dfcdf6ca0
           labels:
             app.kubernetes.io/instance: balancer-RELEASE-NAME
             app.kubernetes.io/name: balancer
@@ -602,7 +602,7 @@ full values render out correctly:
               }
             },
             "runtimeClassName": null,
-            "tag": "v17.3.0",
+            "tag": "v18.0.0",
             "tolerations": [],
             "volumeMounts": [],
             "volumes": []
@@ -641,8 +641,8 @@ full values render out correctly:
       template:
         metadata:
           annotations:
-            checksum/config: 97a2ab33c67c30cb3d5319fd0792d7c3c0a8acd56890efdb1316e52336fcb8f1
-            checksum/secret: 7c430d8f6cf074b992d9f63d9f6fc51256eef05865623b5f19c6c12cef547179
+            checksum/config: 580fff9df38af5da6d807a7495330e106cd2838869d4a783a12a03f13cf59646
+            checksum/secret: 1e1dbeb85e39841b0afb47a5c93d071717f4c3c86dc5136be9f8db9dfcdf6ca0
           labels:
             app.kubernetes.io/instance: balancer-RELEASE-NAME
             app.kubernetes.io/name: balancer
@@ -2850,7 +2850,7 @@ production notes work correctly:
               }
             },
             "runtimeClassName": null,
-            "tag": "v17.3.0",
+            "tag": "v18.0.0",
             "tolerations": [],
             "volumeMounts": [],
             "volumes": []
@@ -2889,8 +2889,8 @@ production notes work correctly:
       template:
         metadata:
           annotations:
-            checksum/config: 97a2ab33c67c30cb3d5319fd0792d7c3c0a8acd56890efdb1316e52336fcb8f1
-            checksum/secret: 7c430d8f6cf074b992d9f63d9f6fc51256eef05865623b5f19c6c12cef547179
+            checksum/config: 580fff9df38af5da6d807a7495330e106cd2838869d4a783a12a03f13cf59646
+            checksum/secret: 1e1dbeb85e39841b0afb47a5c93d071717f4c3c86dc5136be9f8db9dfcdf6ca0
           labels:
             app.kubernetes.io/instance: balancer-RELEASE-NAME
             app.kubernetes.io/name: balancer
